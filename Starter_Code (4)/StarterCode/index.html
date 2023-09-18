@@ -7,6 +7,10 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Bellybutton Biodiversity</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 
 <body>
@@ -45,11 +49,82 @@
     </div>
   </div>
 
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-  <script src="./static/js/app.js"></script>
-  <script src="./static/js/bonus.js"></script>
+  <script>
+    function fetchAndProcessData() {
+      const url =
+        "https://2u-data-curriculum-team.s3.amazonaws.com/dataviz-classroom/v1.1/14-Interactive-Web-Visualizations/02-Homework/samples.json";
 
+      d3.json(url).then((data) => {
+        createBarChart(data);
+        createBubbleChart(data);
+        displayMetadata(data.metadata[0]);
+      });
+    }
+
+    function createBarChart(sampleData) {
+      const topOTUs = sampleData.samples[0].otu_ids.slice(0, 10).map(id => `OTU ${id}`);
+      const topValues = sampleData.samples[0].sample_values.slice(0, 10);
+      const topLabels = sampleData.samples[0].otu_labels.slice(0, 10);
+
+      const trace = {
+        type: 'bar',
+        x: topValues,
+        y: topOTUs,
+        orientation: 'h',
+        text: topLabels
+      };
+
+      const data = [trace];
+      const layout = {
+        title: 'Top 10 OTUs',
+        xaxis: { title: 'Sample Values' },
+        yaxis: { title: 'OTU IDs' },
+        margin: { l: 100, r: 10, t: 30, b: 40 }
+      };
+
+      Plotly.newPlot('bar', data, layout);
+    }
+
+    function createBubbleChart(sampleData) {
+      const otuIDs = sampleData.samples[0].otu_ids;
+      const sampleValues = sampleData.samples[0].sample_values;
+      const otuLabels = sampleData.samples[0].otu_labels;
+
+      const trace = {
+        x: otuIDs,
+        y: sampleValues,
+        mode: 'markers',
+        marker: {
+          size: sampleValues,
+          color: otuIDs,
+          colorscale: 'Viridis'
+        },
+        text: otuLabels
+      };
+
+      const data = [trace];
+      const layout = {
+        title: 'Bubble Chart',
+        xaxis: { title: 'OTU IDs' },
+        yaxis: { title: 'Sample Values' }
+      };
+
+      Plotly.newPlot('bubble', data, layout);
+    }
+
+    function displayMetadata(metadata) {
+      const metadataDiv = document.getElementById("sample-metadata");
+      metadataDiv.innerHTML = "";
+
+      for (const [key, value] of Object.entries(metadata)) {
+        const p = document.createElement("p");
+        p.textContent = `${key}: ${value}`;
+        metadataDiv.appendChild(p);
+      }
+    }
+
+    fetchAndProcessData();
+  </script>
 </body>
 
 </html>
